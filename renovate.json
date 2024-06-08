@@ -7,7 +7,7 @@
       "description": "Update the version of Akkoma",
       "datasourceTemplate": "git-tags",
       "versioningTemplate": "semver",
-      "packageNameTemplate": "akkoma.dev/AkkomaGang/akkoma",
+      "packageNameTemplate": "https://akkoma.dev/AkkomaGang/akkoma",
       "fileMatch": ["^.akkoma_version$"],
       "matchStrings": ["^(?<currentValue>.*)$"]
     }
