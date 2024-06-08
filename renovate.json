@@ -9,7 +9,7 @@
       "versioningTemplate": "semver",
       "packageNameTemplate": "https://akkoma.dev/AkkomaGang/akkoma",
       "fileMatch": ["^.akkoma_version$"],
-      "matchStrings": [".*"]
+      "matchStrings": ["^(?<currentValue>.*)$"]
     }
   ]
 }
