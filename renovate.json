@@ -11,5 +11,12 @@
       "fileMatch": ["^.akkoma_version$"],
       "matchStrings": ["^(?<currentValue>.*)$"]
     }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["^https://akkoma.dev/AkkomaGang/akkoma$"],
+      "updateTypes": ["minor", "patch"],
+      "automerge": true
+    }
   ]
 }
