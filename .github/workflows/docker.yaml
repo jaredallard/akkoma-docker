@@ -1,0 +1,78 @@
+name: "Docker"
+
+on:
+  push:
+    branches:
+      - "main"
+  schedule:
+    # https://crontab.guru/#@daily
+    - cron: "0 0 * * *"
+
+jobs:
+  updater-base-image:
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      attestations: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: jaredallard/akkoma
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get latest versions of Akkoma
+        run: |-
+          curl https://akkoma.dev/api/v1/repos/AkkomaGang/akkoma/releases\?limit\=1 | jq -r '.[0].tag_name' > .akkoma_version
+          echo "AKKOMA_VERSION=$(cat .akkoma_version)" >> $GITHUB_ENV
+          rm .akkoma_version
+      - name: Cancel if no new version
+        run: |-
+          if [[ "$AKKOMA_VERSION" != "$(cat .akkoma_version.last_run)" ]]; then
+            echo "No new version of Akkoma, exiting"
+            exit 78
+          fi
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "TIMESTAMP=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        id: push
+        env:
+          SOURCE_DATE_EPOCH: ${{ env.TIMESTAMP }}
+        with:
+          context: .
+          push: true
+          sbom: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VCS_REF=refs/tags/${{ env.AKKOMA_VERSION}}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.AKKOMA_VERSION }}
+      - name: Attest
+        uses: actions/attest-build-provenance@v1
+        id: attest
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+      - name: Set last-run version
+        run: |-
+          echo -n "$AKKOMA_VERSION" > .akkoma_version.last_run
+      - uses: jaredallard/ghcommit-action@v0.1.7
+        if: github.event_name != 'pull_request'
+        with:
+          commit_message: "akkoma ${{ env.AKKOMA_VERSION }} [skip ci]"
+          repo: ${{ github.repository }}
+          branch: "main"
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
