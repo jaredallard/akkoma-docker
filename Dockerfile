@@ -2,7 +2,7 @@
 ARG VCS_REF
 ARG BUILD_DATE
 
-FROM hexpm/elixir:1.15.8-erlang-26.1.2-alpine-3.20.0 as base
+FROM hexpm/elixir:1.17.0-erlang-26.1.2-alpine-3.20.0 as base
 FROM base as builder
 ENV MIX_ENV=prod
 ENV ERL_EPMD_ADDRESS=127.0.0.1
