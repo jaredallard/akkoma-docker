@@ -54,7 +54,8 @@ RUN addgroup -g 1000 akkoma && \
 RUN apk add --no-cache file-dev exiftool ffmpeg imagemagick libmagic ncurses postgresql-client
 
 # Copy the files from the builder image over.
-COPY --chown=1000:1000 --from=builder /opt/akkoma/_build/prod/rel/pleroma  .
+COPY --chown=1000:1000 --from=builder /opt/akkoma/_build/prod/rel/pleroma .
+COPY --chown=1000:1000 --from=builder /opt/akkoma/_build/prod/rel/pleroma_ctl .
 
 USER akkoma
 
