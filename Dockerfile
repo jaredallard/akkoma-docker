@@ -29,7 +29,7 @@ RUN mix local.hex --force &&\
   mix local.rebar --force &&\
   mix do deps.get, deps.compile, compile, phx.digest, release
 
-FROM alpine:3.20 as runtime
+FROM alpine:3.21 as runtime
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="akkoma" \
