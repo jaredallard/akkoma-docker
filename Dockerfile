@@ -2,8 +2,8 @@
 ARG VCS_REF
 ARG BUILD_DATE
 
-FROM hexpm/elixir:1.17.2-erlang-27.0.1-alpine-3.20.2 as base
-FROM base as builder
+FROM hexpm/elixir:1.17.2-erlang-27.0.1-alpine-3.20.2 AS base
+FROM base AS builder
 ENV MIX_ENV=prod
 ENV ERL_EPMD_ADDRESS=127.0.0.1
 ARG VCS_REF
@@ -29,7 +29,7 @@ RUN mix local.hex --force &&\
   mix local.rebar --force &&\
   mix do deps.get, deps.compile, compile, phx.digest, release
 
-FROM alpine:3.21 as runtime
+FROM alpine:3.21 AS runtime
 ARG VCS_REF
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="akkoma" \
@@ -42,9 +42,10 @@ LABEL org.opencontainers.image.title="akkoma" \
   org.opencontainers.image.created=$BUILD_DATE
 EXPOSE 4000
 
-CMD trap 'exit' INT; /opt/akkoma/bin/pleroma start
+CMD trap 'exit' INT; pleroma start
 
 WORKDIR /opt/akkoma
+ENV PATH /opt/akkoma/bin:$PATH
 
 # Create a user for running the app
 RUN addgroup -g 1000 akkoma && \
@@ -55,7 +56,6 @@ RUN apk add --no-cache file-dev exiftool ffmpeg imagemagick libmagic ncurses pos
 
 # Copy the files from the builder image over.
 COPY --chown=1000:1000 --from=builder /opt/akkoma/_build/prod/rel/pleroma .
-COPY --chown=1000:1000 --from=builder /opt/akkoma/_build/prod/rel/pleroma_ctl .
 
 USER akkoma
 
